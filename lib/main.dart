@@ -1,13 +1,8 @@
-import 'package:clatch_rcikmorti/core/theme/app_theme.dart';
+import 'package:clatch_rcikmorti/app.dart';
+import 'package:clatch_rcikmorti/core/di/injection.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(
-    MaterialApp(
-      title: 'Rick and Morty',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
-      home: const Scaffold(),
-    ),
-  );
+  configureDependencies();
+  runApp(const App());
 }
