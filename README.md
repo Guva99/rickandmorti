@@ -1,16 +1,41 @@
-# clatch_rcikmorti
+# Rick and Morty — каталог персонажей
 
-A new Flutter project.
+Flutter-приложение поверх [Rick and Morty API](https://rickandmortyapi.com/documentation):
+список с поиском и бесконечной прокруткой, детальный экран персонажа.
 
-## Getting Started
+## Запуск
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run
+```
 
-A few resources to get you started if this is your first Flutter project:
+Проверки:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```bash
+flutter analyze
+flutter test
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Требуется Flutter stable с Dart 3.9+.
+
+## Архитектура
+
+Clean Architecture, feature-first: `lib/core` (DI, сеть, ошибки, `Result`, тема) и `lib/features/characters/{domain,data,presentation}`.
+
+- **domain** — сущности, контракт репозитория и use case `GetCharacters`. Чистый Dart без Flutter, Dio и JSON.
+- **data** — DTO с ручным `fromJson` на map-паттернах, `CharactersRemoteDataSource` на Dio, `CharactersRepositoryImpl`. Он переводит DTO в сущности, а исключения — в `Failure`.
+- **presentation** — `CharactersBloc` и виджеты. UI общается только с bloc, bloc — только с use case.
+- Ошибки идут через `sealed class Result<T>` (`Success` / `Failed`; имя `Failure` занято типом ошибки).
+- Зависимости собираются в одном месте: `core/di/injection.dart`.
+
+## Решения и компромиссы
+
+- **Одно состояние с полями вместо иерархии классов.** Пагинация, поиск и ошибка следующей страницы существуют одновременно: список уже показан, футер в ошибке, запрос другой. В иерархии состояний пришлось бы копировать эти данные из класса в класс. Плоское состояние проще тестировать через `copyWith` и равенство.
+- **Гонки запросов.** Поиск идёт через `debounce` (400 мс) и `restartable`, пагинация — через `droppable`. После `await` bloc сверяет запрос с текущим состоянием (`query`, `nextPage`), поэтому ответ на устаревший поиск, refresh или страницу не перезапишет новое состояние. HTTP-запрос при этом не обрывается: иначе пришлось бы тащить `CancelToken` в domain.
+- **404 = пустой список.** На пустой поиск API отвечает `404 {"error": "There is nothing here"}`. Это переводится в пустую страницу в репозитории, поэтому выше data-слоя такого знания нет.
+- **Без кодогенерации.** Моделей две, и они маленькие. Ручной `fromJson` на Dart 3 паттернах короче сгенерированного кода, читается целиком и на неожиданный ответ бросает `FormatException`, который становится `Failure`.
+- **Детальный экран без дополнительного запроса.** Всё нужное уже пришло в ответе списка, поэтому сущность передаётся в экран напрямую.
+- **Состояние списка переживает навигацию.** Bloc живёт выше `MaterialApp`, на `CustomScrollView` стоит `PageStorageKey`.
+- **Неудачный refresh не стирает список.** Загруженные данные остаются на экране, ошибка показывается в SnackBar. Ошибка следующей страницы отображается в футере с кнопкой повтора и автоматически при прокрутке не повторяется.
+- **Анимации.** Hero для аватара и имени (радиус скругления и стиль текста интерполируются в полёте), кастомный переход между экранами, появление карточек только при первом показе, shimmer на `ShaderMask`, пульсация статуса Alive. Длительности и кривые берутся из `core/theme/app_motion.dart`, системная настройка отключения анимаций соблюдается.

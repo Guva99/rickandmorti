@@ -30,8 +30,7 @@ class _CharactersGridState extends State<CharactersGrid> {
   final _revealed = <int>{};
   var _revealedThisFrame = 0;
 
-  // Only tiles revealed within one frame form a staircase, so tiles that
-  // scroll into view later appear right away instead of waiting their turn.
+  // Stagger only tiles revealed in the same frame; later ones appear at once.
   Duration _nextRevealDelay() {
     if (_revealedThisFrame == 0) {
       WidgetsBinding.instance.addPostFrameCallback(
