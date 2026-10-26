@@ -1,5 +1,6 @@
 import 'package:clatch_rcikmorti/core/theme/app_dimens.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/bloc/characters_bloc.dart';
+import 'package:clatch_rcikmorti/features/characters/presentation/pages/character_details_page.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/widgets/character_tile.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/widgets/list_footer.dart';
 import 'package:flutter/material.dart';
@@ -40,8 +41,15 @@ class CharactersGrid extends StatelessWidget {
               sliver: SliverGrid.builder(
                 gridDelegate: charactersGridDelegate,
                 itemCount: state.items.length,
-                itemBuilder: (context, index) =>
-                    CharacterTile(character: state.items[index]),
+                itemBuilder: (context, index) {
+                  final character = state.items[index];
+                  return CharacterTile(
+                    character: character,
+                    onTap: () => Navigator.of(
+                      context,
+                    ).push(CharacterDetailsPage.route(character)),
+                  );
+                },
               ),
             ),
             SliverSafeArea(
