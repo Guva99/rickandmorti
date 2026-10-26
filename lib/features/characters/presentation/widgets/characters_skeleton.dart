@@ -2,18 +2,21 @@ import 'package:clatch_rcikmorti/core/theme/app_colors.dart';
 import 'package:clatch_rcikmorti/core/theme/app_dimens.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/widgets/character_tile.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/widgets/characters_grid.dart';
+import 'package:clatch_rcikmorti/features/characters/presentation/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 
 class CharactersSkeleton extends StatelessWidget {
   const CharactersSkeleton({super.key});
 
   @override
-  Widget build(BuildContext context) => GridView.builder(
-    physics: const NeverScrollableScrollPhysics(),
-    padding: charactersGridPadding,
-    gridDelegate: charactersGridDelegate,
-    itemCount: 12,
-    itemBuilder: (_, _) => const _SkeletonTile(),
+  Widget build(BuildContext context) => Shimmer(
+    child: GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: charactersGridPadding,
+      gridDelegate: charactersGridDelegate,
+      itemCount: 12,
+      itemBuilder: (_, _) => const _SkeletonTile(),
+    ),
   );
 }
 

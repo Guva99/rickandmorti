@@ -1,6 +1,7 @@
 import 'package:clatch_rcikmorti/core/error/failure.dart';
 import 'package:clatch_rcikmorti/core/theme/app_colors.dart';
 import 'package:clatch_rcikmorti/core/theme/app_dimens.dart';
+import 'package:clatch_rcikmorti/core/theme/app_motion.dart';
 import 'package:flutter/material.dart';
 
 class ListFooter extends StatelessWidget {
@@ -21,16 +22,22 @@ class ListFooter extends StatelessWidget {
       horizontal: AppSpacing.lg,
       vertical: AppSpacing.xl,
     ),
-    child: switch ((isLoading, failure)) {
-      (true, _) => const Center(
-        child: SizedBox.square(
-          dimension: 24,
-          child: CircularProgressIndicator(strokeWidth: 2.5),
+    child: AnimatedSwitcher(
+      duration: context.motion(AppMotion.medium),
+      child: switch ((isLoading, failure)) {
+        (true, _) => const Center(
+          child: SizedBox.square(
+            dimension: 24,
+            child: CircularProgressIndicator(strokeWidth: 2.5),
+          ),
         ),
-      ),
-      (_, final failure?) => _LoadMoreError(failure: failure, onRetry: onRetry),
-      _ => const SizedBox.shrink(),
-    },
+        (_, final failure?) => _LoadMoreError(
+          failure: failure,
+          onRetry: onRetry,
+        ),
+        _ => const SizedBox.shrink(),
+      },
+    ),
   );
 }
 

@@ -17,5 +17,5 @@ abstract final class AppColors {
   static const unknown = Color(0xFF8D9AA8);
 
   static const skeleton = Color(0xFF1C252E);
-  static const skeletonHighlight = Color(0xFF2A3540);
+  static const shimmer = Color(0x14FFFFFF);
 }

@@ -1,4 +1,5 @@
 import 'package:clatch_rcikmorti/core/theme/app_dimens.dart';
+import 'package:clatch_rcikmorti/core/theme/app_motion.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/bloc/characters_bloc.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/widgets/characters_grid.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/widgets/characters_skeleton.dart';
@@ -75,10 +76,11 @@ class _CatalogBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<CharactersBloc>().state;
 
-    return switch (state) {
+    final view = switch (state) {
       _ when state.items.isNotEmpty => const CharactersGrid(),
       CharactersState(status: CharactersStatus.failure, :final failure?) =>
         MessageView(
+          key: const ValueKey(CharactersStatus.failure),
           icon: Icons.cloud_off_rounded,
           title: 'Could not load characters',
           message: failure.message,
@@ -89,11 +91,19 @@ class _CatalogBody extends StatelessWidget {
           ),
         ),
       CharactersState(status: CharactersStatus.success) => MessageView(
+        key: const ValueKey(CharactersStatus.success),
         icon: Icons.person_search_rounded,
         title: 'Nobody here',
         message: 'No characters match “${state.query}”. Try another name.',
       ),
       _ => const CharactersSkeleton(),
     };
+
+    return AnimatedSwitcher(
+      duration: context.motion(AppMotion.medium),
+      switchInCurve: AppMotion.curve,
+      switchOutCurve: AppMotion.curve,
+      child: view,
+    );
   }
 }

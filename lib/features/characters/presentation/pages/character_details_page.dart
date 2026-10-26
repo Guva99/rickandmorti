@@ -2,8 +2,11 @@ import 'dart:math';
 
 import 'package:clatch_rcikmorti/core/theme/app_colors.dart';
 import 'package:clatch_rcikmorti/core/theme/app_dimens.dart';
+import 'package:clatch_rcikmorti/core/theme/app_motion.dart';
 import 'package:clatch_rcikmorti/features/characters/domain/entities/character.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/widgets/character_avatar.dart';
+import 'package:clatch_rcikmorti/features/characters/presentation/widgets/character_name.dart';
+import 'package:clatch_rcikmorti/features/characters/presentation/widgets/entrance_transition.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/widgets/fact_tile.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/widgets/status_badge.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +14,31 @@ import 'package:flutter/material.dart';
 class CharacterDetailsPage extends StatelessWidget {
   const CharacterDetailsPage({required this.character, super.key});
 
-  static Route<void> route(Character character) => MaterialPageRoute(
-    builder: (_) => CharacterDetailsPage(character: character),
-  );
+  static Route<void> route(BuildContext context, Character character) {
+    final duration = context.motion(AppMotion.page);
+    return PageRouteBuilder(
+      transitionDuration: duration,
+      reverseTransitionDuration: duration,
+      pageBuilder: (_, _, _) => CharacterDetailsPage(character: character),
+      transitionsBuilder: (_, animation, _, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: AppMotion.curve,
+          reverseCurve: AppMotion.curve.flipped,
+        );
+        return FadeTransition(
+          opacity: curved,
+          child: SlideTransition(
+            position: Tween(
+              begin: AppMotion.pageOffset,
+              end: Offset.zero,
+            ).animate(curved),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
 
   static const _maxContentWidth = 720.0;
 
@@ -48,20 +73,26 @@ class CharacterDetailsPage extends StatelessWidget {
               ),
               sliver: SliverList.list(
                 children: [
-                  Text(
-                    character.name,
+                  CharacterName(
+                    character: character,
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: StatusBadge(status: character.status),
+                  EntranceTransition(
+                    delay: AppMotion.staggerStep,
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: StatusBadge(status: character.status),
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  for (final (icon, label, value) in facts)
+                  for (final (index, (icon, label, value)) in facts.indexed)
                     Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: FactTile(icon: icon, label: label, value: value),
+                      child: EntranceTransition(
+                        delay: AppMotion.staggerStep * (index + 2),
+                        child: FactTile(icon: icon, label: label, value: value),
+                      ),
                     ),
                 ],
               ),

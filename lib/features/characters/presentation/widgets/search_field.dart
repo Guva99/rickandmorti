@@ -1,3 +1,4 @@
+import 'package:clatch_rcikmorti/core/theme/app_motion.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/bloc/characters_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,13 +46,18 @@ class _SearchFieldState extends State<SearchField> {
       prefixIcon: const Icon(Icons.search_rounded),
       suffixIcon: ValueListenableBuilder(
         valueListenable: _controller,
-        builder: (context, value, _) => value.text.isEmpty
-            ? const SizedBox.shrink()
-            : IconButton(
-                onPressed: _clear,
-                tooltip: 'Clear',
-                icon: const Icon(Icons.close_rounded),
-              ),
+        builder: (context, value, _) => AnimatedSwitcher(
+          duration: context.motion(AppMotion.fast),
+          transitionBuilder: (child, animation) =>
+              ScaleTransition(scale: animation, child: child),
+          child: value.text.isEmpty
+              ? const SizedBox.shrink()
+              : IconButton(
+                  onPressed: _clear,
+                  tooltip: 'Clear',
+                  icon: const Icon(Icons.close_rounded),
+                ),
+        ),
       ),
     ),
   );

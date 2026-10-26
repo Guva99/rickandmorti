@@ -1,7 +1,11 @@
+import 'dart:math';
+
 import 'package:clatch_rcikmorti/core/theme/app_dimens.dart';
+import 'package:clatch_rcikmorti/core/theme/app_motion.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/bloc/characters_bloc.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/pages/character_details_page.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/widgets/character_tile.dart';
+import 'package:clatch_rcikmorti/features/characters/presentation/widgets/entrance_transition.dart';
 import 'package:clatch_rcikmorti/features/characters/presentation/widgets/list_footer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,8 +19,28 @@ const charactersGridDelegate = SliverGridDelegateWithMaxCrossAxisExtent(
 
 const charactersGridPadding = EdgeInsets.symmetric(horizontal: AppSpacing.lg);
 
-class CharactersGrid extends StatelessWidget {
+class CharactersGrid extends StatefulWidget {
   const CharactersGrid({super.key});
+
+  @override
+  State<CharactersGrid> createState() => _CharactersGridState();
+}
+
+class _CharactersGridState extends State<CharactersGrid> {
+  final _revealed = <int>{};
+  var _revealedThisFrame = 0;
+
+  // Only tiles revealed within one frame form a staircase, so tiles that
+  // scroll into view later appear right away instead of waiting their turn.
+  Duration _nextRevealDelay() {
+    if (_revealedThisFrame == 0) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _revealedThisFrame = 0,
+      );
+    }
+    final step = min(_revealedThisFrame++, AppMotion.maxStaggerSteps);
+    return AppMotion.staggerStep * step;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,11 +67,18 @@ class CharactersGrid extends StatelessWidget {
                 itemCount: state.items.length,
                 itemBuilder: (context, index) {
                   final character = state.items[index];
-                  return CharacterTile(
-                    character: character,
-                    onTap: () => Navigator.of(
-                      context,
-                    ).push(CharacterDetailsPage.route(character)),
+                  final isFirstAppearance = _revealed.add(character.id);
+                  return EntranceTransition(
+                    enabled: isFirstAppearance,
+                    delay: isFirstAppearance
+                        ? _nextRevealDelay()
+                        : Duration.zero,
+                    child: CharacterTile(
+                      character: character,
+                      onTap: () => Navigator.of(
+                        context,
+                      ).push(CharacterDetailsPage.route(context, character)),
+                    ),
                   );
                 },
               ),
